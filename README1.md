@@ -4,7 +4,7 @@
 
 this is a link for my tinkercad file for stage-2 (https://www.tinkercad.com/things/dcMnIvQHpTa-magnificent-amberis)
 
-Asduino code :
+Arduino code :
 
 // C++ code
 
