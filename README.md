@@ -124,11 +124,3 @@ void updateServo() {
   delayMicroseconds(pulseWidth);
   digitalWrite(SERVO_PIN, LOW);
 }
-
-
-
-
-
-# stage-3------------------------------------------------------------<br>
-
-# problem-1 : Design a PCB on Kicad. The PCB will contain an AtMega328P chip (SMD), IR receiver(for receiving signals from remote), Buck converter (for powering servo and Nano), a connector for servo, and a connector for 12V power supply
