@@ -80,47 +80,77 @@ void loop() {
 this is a link for my tinkercad file for stage-2 problem-2 (https://www.tinkercad.com/things/60p1n9k2j1E-sizzling-blad)
 
 Arduino code :
-# NOTE : This code is not working in tinkercad dut to "IRRemote configuration of buttons" but compilation is going well and it will run on another remote or hardware
 
-#include <IRremote.h>
 
-#define IR_PIN 11 
-#define SERVO_PIN 9
+#define DECODE_NEC
 
-IRrecv irrecv(IR_PIN);
+#if !defined(RAW_BUFFER_LENGTH)
+#define RAW_BUFFER_LENGTH 100                                                                                              \
+// #define RAW_BUFFER_LENGTH  112   
+#endif
+
+#define EXCLUDE_UNIVERSAL_PROTOCOLS  
+#define EXCLUDE_EXOTIC_PROTOCOLS
+
+
+# include <IRremote.hpp>
+
+int ir_pin = 11; 
+int servopin = 9;
+IRrecv recv(ir_pin);
 decode_results results;
 
-int servoPos = 0;
+int Position = 0;
 
-void setup() {
-  pinMode(SERVO_PIN, OUTPUT);
-  irrecv.enableIRIn();
+void setup(){ 
+  delay(1000);
+  recv.enableIRIn();
+  
+  IrReceiver.begin(ir_pin, ENABLE_LED_FEEDBACK);
+  printActiveIRProtocols(&Serial);
+  Serial.println(ir_pin);
+  
+  pinMode(ir_pin, INPUT_PULLUP);
+  pinMode(servopin, OUTPUT);
 }
 
-void loop() {
-  if (irrecv.decode(&results)) {
-    if (results.value == 0xFF30CF) { 
-      sweepServo(0, 180, 1);
-    } else if (results.value == 0xFF18E7) { 
-      sweepServo(180, 0, -1);
+void loop(){
+ if (IrReceiver.decode()) {
+   	if(IrReceiver.decodedIRData.command==0x10) {        
+        servoclock(0,180,1);
     }
-    irrecv.resume();
+          
+   else if(IrReceiver.decodedIRData.command==0x11){
+        servoanticlock(180,0,1);
+    }		
+ 
+   else{
+        IrReceiver.printIRResultShort(&Serial);
+    } 
+    IrReceiver.resume();
+  }
+ }
+
+void servoclock (int from, int to, int step) {
+  for (int i = from; i <= to; i += step) {
+    Position = i;
+    
+    int pulseWidth = map(Position, 0, 180, 500, 2500);
+
+      digitalWrite(servopin, HIGH);
+      delayMicroseconds(pulseWidth);
+      digitalWrite(servopin, LOW);
+    delay(20);
   }
 }
-
-void sweepServo(int from, int to, int step) {
-  for (int i = from; i != to; i += step) {
-    servoPos = i;
-    updateServo();
-    delay(15);
+void servoanticlock(int from, int to, int step) {
+  for (int i = from; i >= to; i -= step) {
+    Position = i;
+    int pulseWidth = map(Position, 0, 180, 500, 2500);
+   
+      digitalWrite(servopin, HIGH);
+      delayMicroseconds(pulseWidth);
+      digitalWrite(servopin, LOW);
+    delay(20);
   }
-}
-
-void updateServo() {
-  
-  int pulseWidth = map(servoPos, 0, 180, 500, 2500);
-  
-  digitalWrite(SERVO_PIN, HIGH);
-  delayMicroseconds(pulseWidth);
-  digitalWrite(SERVO_PIN, LOW);
 }
